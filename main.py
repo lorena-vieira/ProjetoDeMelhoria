@@ -15,12 +15,6 @@ if __name__ == '__main__':
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-pip install python-docx
-
-
-# Mesmo código ajustando o termo "usuário" para "OAE"
-
-pip install sqlite3
 
 
 from docx import Document
@@ -31,7 +25,6 @@ def ler_documento(doc_path):
     for paragraph in document.paragraphs:
         texto = paragraph.text
         # Faça algo com o texto, como exibir ou armazenar em sua base de dados
-        print(texto)
 
 def criar_tabela():
     conexao = sqlite3.connect('seu_banco_de_dados.db')
@@ -39,17 +32,27 @@ def criar_tabela():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS OAEs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            email TEXT
+            Km TEXT,
+            Linha TEXT
+            Cidade TEXT
+            Estado TEXT
+            Bitola TEXT
+            Traçado TEXT
+            Trilhos TEXT
+            Fixação TEXT
+            Comprimento TEXT
+            Largura TEXT
+            Altura TEXT
+            
         )
     ''')
     conexao.commit()
     conexao.close()
 
-def inserir_OAE(Km, Linha, Cidade, Estado, Bitola, Comprimento, Traçado, Trilhos, Fixação, Largura, Altura):
+def inserir_OAE(Km, Linha, Cidade, Estado, Bitola, Traçado, Trilhos, Fixação, Comprimento, Largura, Altura):
     conexao = sqlite3.connect('seu_banco_de_dados.db')
     cursor = conexao.cursor()
-    cursor.execute('INSERT INTO OAEs (Km, Linha, Cidade, Estado, Bitola, Comprimento, Traçado, Trilhos, Fixação, Largura, Altura) VALUES (?, ?)', (Km, Linha, Cidade, Estado, Bitola, Comprimento, Traçado, Trilhos, Fixação, Largura, Altura))
+    cursor.execute('INSERT INTO OAEs (Km, Linha, Cidade, Estado, Bitola, Traçado, Trilhos, Fixação, Comprimento, Largura, Altura) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (Km, Linha, Cidade, Estado, Bitola, Traçado, Trilhos, Fixação, Comprimento, Largura, Altura))
     conexao.commit()
     conexao.close()
 
@@ -59,6 +62,9 @@ Linha_OAE = input("Digite a Linha da OAE: ")
 Cidade_OAE = input("Digite a Cidade da OAE: ")
 Estado_OAE = input("Digite o Estado da OAE: ")
 Bitola_OAE = input("Digite a Bitola da OAE: ")
+Traçado_OAE = input("Digite o Traçado da OAE: ")
+Trilhos_OAE = input("Digite os Trilhos da OAE: ")
+Fixação_OAE = input("Digite a Fixação da OAE: ")
 Comprimento_OAE = input("Digite o Comprimento da OAE: ")
 Largura_OAE = input("Digite a Largura da OAE: ")
 Altura_OAE = input("Digite a Altura da OAE: ")
@@ -68,65 +74,52 @@ Altura_OAE = input("Digite a Altura da OAE: ")
 criar_tabela()
 
 # Insere informações da OAE no banco de dados
-inserir_OAE(Km_OAE, Linha_OAE, Cidade_OAE, Estado_OAE, Bitola_OAE, Comprimento_OAE, Largura_OAE, Altura_OAE)
+inserir_OAE(Km_OAE, Linha_OAE, Cidade_OAE, Estado_OAE, Bitola_OAE, Traçado_OAE, Trilhos_OAE, Fixação_OAE, Comprimento_OAE, Largura_OAE, Altura_OAE)
 
 # Substitua 'caminho/do/seu/arquivo.docx' pelo caminho real do seu arquivo .docx
-ler_documento('C:\Users\Lorena\Documents\PONTES - MH\Projeto de melhoria\arquivo base python\Relatório - km XX+XXX - Metálica.docx')
+ler_documento(r'C:\Users\Lorena\Documents\PONTES-MH\ProjetoDeMelhoria\arquivoBasePython\RelatórioMetálica.docx')
 
+import re
 from docx import Document
-import sqlite3
 
-def substituir_informacoes_no_docx(doc_path, informacoes):
-    document = Document(doc_path)
+def substituir_marcadores_no_docx(template_path, informacoes_usuario, novo_doc_path):
+    document = Document(template_path)
 
     for paragraph in document.paragraphs:
         for run in paragraph.runs:
             texto = run.text
-            for chave, valor in informacoes.items():
-                # Substituir a chave no texto pelo valor
-                texto = texto.replace(chave, valor)
+            for marcador, valor in informacoes_usuario.items():
+                # Usar expressão regular para substituir marcador no texto
+                texto = re.sub(fr"\{{{marcador}_OAE\}}", valor, texto)
+
+            # Exibir o texto do parágrafo no console antes da substituição
+            print(texto)
 
             # Atualizar o texto no run
             run.text = texto
 
     # Salvar o novo documento
-    novo_doc_path = "novo_documento.docx"
     document.save(novo_doc_path)
 
-    print(f"Novo documento gerado em: {novo_doc_path}")
-
-# Solicita ao usuário para fornecer informações
-nome_OAE = input("Digite o nome da OAE: ")
-email_OAE = input("Digite o email da OAE: ")
-km = input("Digite o valor para Km: ")
-linha = input("Digite o valor para Linha: ")
-cidade = input("Digite o valor para Cidade: ")
-estado = input("Digite o valor para Estado: ")
-bitola = input("Digite o valor para Bitola: ")
-comprimento = input("Digite o valor para Comprimento: ")
-tracado = input("Digite o valor para Traçado: ")
-trilhos = input("Digite o valor para Trilhos: ")
-fixacao = input("Digite o valor para Fixação: ")
-largura = input("Digite o valor para Largura: ")
-altura = input("Digite o valor para Altura: ")
-
-# Cria um dicionário com as informações fornecidas pelo usuário
-informacoes_oae = {
-    '{Km}': km,
-    '{Linha}': linha,
-    '{Cidade}': cidade,
-    '{Estado}': estado,
-    '{Bitola}': bitola,
-    '{Comprimento}': comprimento,
-    '{Traçado}': tracado,
-    '{Trilhos}': trilhos,
-    '{Fixação}': fixacao,
-    '{Largura}': largura,
-    '{Altura}': altura,
+# Exemplo de uso
+informacoes_usuario = {
+    "Km_OAE": "123",
+    "Linha_OAE": "Linha X",
+    "Cidade_OAE": "Exemploville",
+    "Estado_OAE": "EX",
+    "Bitola_OAE": "1,60 m",
+    "Traçado_OAE": "Curvo",
+    "Trilhos_OAE": "Trilhos de aço",
+    "Fixação_OAE": "Parafusos",
+    "Comprimento_OAE": "50 metros",
+    "Largura_OAE": "3 metros",
+    "Altura_OAE": "5 metros"
 }
 
-# Substitua 'caminho/do/seu/arquivo.docx' pelo caminho real do seu arquivo .docx
-substituir_informacoes_no_docx('C:\Users\Lorena\Documents\PONTES - MH\Projeto de melhoria\arquivo base python\Relatório - km XX+XXX - Metálica.docx', informacoes_oae)
+substituir_marcadores_no_docx(r'C:\Users\Lorena\Documents\PONTES-MH\ProjetoDeMelhoria\arquivoBasePython\RelatórioMetálica.docx', informacoes_usuario, "novo_diagnostico_OAE.docx")
+
+
+
 
 # Agora o código para inserção das patologias
 
@@ -196,9 +189,8 @@ patologias = {
 }
 
 # Substitua 'caminho/do/seu/arquivo.docx' pelo caminho real do seu arquivo .docx
-substituir_patologias_no_docx('caminho/do/seu/arquivo.docx', patologias)
+substituir_patologias_no_docx(r'C:\Users\Lorena\Documents\PONTES-MH\ProjetoDeMelhoria\arquivoBasePython\RelatórioMetálica.docx', patologias)
 
-pip install Pillow
 
 import tkinter as tk
 from tkinter import messagebox
@@ -325,4 +317,6 @@ if __name__ == "__main__":
 # um botão para adicionar imagens e um botão para gerar o relatório.
 # Quando o usuário seleciona patologias e adiciona imagens,
 # o código substitui as patologias no documento .docx e insere as imagens no final do documento.
+
+
 
